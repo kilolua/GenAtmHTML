@@ -59,24 +59,34 @@ class SupportHtml{
     res = res.replace(/ /g, '_');
     res = res.replace(/!/g, '');
     res = res.replace(/:/g, '');
+    res = res.replace(/,/g, '');
+    res = res.replace(/\n/g, '');
+    res = res.replace(/\)/g, '');
+    res = res.replace(/\(/g, '');
     return res
 
   }
 
-  generateCSS(node, rootBox){
+  generateCSS(node, rootBox, flag=true){
     let x = node.absoluteBoundingBox.x - rootBox.x;
     let y = node.absoluteBoundingBox.y - rootBox.y;
     let className = this.getCorrectlyClassNameCSS(node.name);
     let bgColor = 'none';
     let borderRadius = "";
+    let border = "";
+    let shadow = "";
     let font_size = "";
+    let font_weight = "";
     if (node.type === "TEXT"){
       if (!!node.style && !!node.style.fontSize){
         font_size = node.style.fontSize + 'px';
       }
+      if (!!node.style && !!node.style.fontWeight){
+        font_weight = node.style.fontWeight;
+      }
     }
     // console.log(node.fills[0])
-    if (!!node.fills && node.fills.length > 0 && node.fills[0].color){
+    if (!!node.fills && node.fills.length > 0 && node.fills[0].color && flag !== false){
       let color = node.fills[0].color;
       bgColor = `rgb(${Math.round(color.r*100)}%,${Math.round(color.g*100)}%, ${Math.round(color.b*100)}%)`;
     }
@@ -85,15 +95,32 @@ class SupportHtml{
       borderRadius = `border-radius: ${border[0]}px ${border[1]}px ${border[2]}px ${border[3]}px`
       console.log(1)
     }
+    if (!!node.effects && !!node.effects[0] && node.effects.length > 0){
+      console.log(2)
+      if (node.effects[0].type === "DROP_SHADOW"){
+        let shadowColor = `rgba(${node.effects[0].color.r}, ${node.effects[0].color.g}, ${node.effects[0].color.b}, ${node.effects[0].color.a})`
+        shadow = `box-shadow: ${node.effects[0].offset.x}px ${node.effects[0].offset.y}px ${node.effects[0].radius}px ${shadowColor};`
+      }
+    }
+    if (!!node.strokes && !!node.strokes[0] && node.strokes.length > 0){
+      if (node.strokes[0].type === "SOLID"){
+        let borderColor = `rgba(${Math.round(node.strokes[0].color.r*100)}%, ${Math.round(node.strokes[0].color.g*100)}%, ${Math.round(node.strokes[0].color.b*100)}%, ${node.strokes[0].color.a})`
+        border = `border: ${node.strokeWeight}px solid ${borderColor};`
+      }
+    }
+    
     let resCSS = `.${className} {
       width: ${node.absoluteBoundingBox.width}px;
       height: ${node.absoluteBoundingBox.height}px;
       position: absolute;
       ${node.type === "TEXT"?"color: "+bgColor:"background: "+bgColor};
       ${borderRadius === ""?"":borderRadius};
+      ${shadow === ""?"":shadow};
+      ${border === ""?"":border};
       left: ${x}px;
       top: ${y}px;
       ${font_size !== ""?"font-size: "+font_size: ""};
+      ${font_weight !== ""?"font-weight: "+font_weight: ""};
 }\n\n`;
     this.cssText += resCSS
 
@@ -105,13 +132,13 @@ class SupportHtml{
         {'<>':'img','alt':'','src':url},
       ]};
     //console.log(json2html.transform({},transform));
-    this.generateCSS(node, rootBox);
+    this.generateCSS(node, rootBox, false);
     this.namingCounter += 1;
     return this.editTabHtml(json2html.transform({},transform));
   }
 
   getImageData(id){
-    let res = sfetch("https://api.figma.com/v1/images/vZRgcyWMOz8tg1lzH4SjSx?ids="+id, {
+    let res = sfetch("https://api.figma.com/v1/images/CClIdkIpUaDDWdbxp9EkMJ?ids="+id, {
       headers: {
         "X-Figma-Token": '166351-7aac409c-54bc-4425-90c8-eb1a8585d613'
       }
@@ -135,17 +162,20 @@ class SupportHtml{
 
 
   getNodeHTML(node, rootBox){
-    if (typeof node.characters !== "undefined" || !!node.fills && node.fills.length > 0 && node.fills[0].color) {
+    if (true) {
+      //console.log(node)
       let className = this.getCorrectlyClassNameCSS(node.name);
-      let transform = {
-        '<>': 'div',
-        'class': className,
-        'id': 'label-' + className,
-        'html': `${typeof node.characters === "undefined" ? "" : node.characters}`
-      };
+      // let transform = {
+      //   '<>': 'div',
+      //   'class': className,
+      //   'id': 'label-' + className,
+      //   'html': `${typeof node.characters === "undefined" ? "" : node.characters}`
+      // };
+      let divHTML = `<div class='${className}'>${typeof node.characters === "undefined" ? "" : node.characters}`
       this.generateCSS(node, rootBox);
       this.namingCounter += 1;
-      return this.editTabHtml(json2html.transform({}, transform));
+      // return this.editTabHtml(json2html.transform({}, divHTML));
+      return divHTML;
     }
     return ""
   }

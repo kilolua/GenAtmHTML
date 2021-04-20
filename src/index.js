@@ -3,13 +3,14 @@ const fs = require("fs");
 const json2html = require('node-json2html');
 const supportHtml = require("./supportHtml.js")
 
-fetch("https://api.figma.com/v1/files/vZRgcyWMOz8tg1lzH4SjSx", {
+fetch("https://api.figma.com/v1/files/CClIdkIpUaDDWdbxp9EkMJ", {
   headers: {
     "X-Figma-Token": '166351-7aac409c-54bc-4425-90c8-eb1a8585d613'
   }
 }).then((data)=>{
   data.json().then((data)=>{
     createHTML(data);
+    fs.writeFileSync("./webiusHTML/out.json", JSON.stringify(data));
   })
 });
 
@@ -29,8 +30,9 @@ const createHTMLContainer=(rootFrame, rootBox)=>{
           //console.log(1);
         } else
           {
-          res += createHTMLContainer(node, rootBox);
-          res += support.getNodeHTML(node, rootBox);
+            res += support.getNodeHTML(node, rootBox);
+            res += createHTMLContainer(node, node.absoluteBoundingBox);
+            res += "</div>"
         }
       }
     })
@@ -43,7 +45,7 @@ const createHTMLContainer=(rootFrame, rootBox)=>{
 }
 
 const createHTML = data => {
-  rootFrame = data.document.children[0].children[0]
+  rootFrame = data.document.children[0].children[0];
   rootBox = rootFrame.absoluteBoundingBox;
 
   let doc = support.getBeginHtml();
