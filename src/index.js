@@ -1,9 +1,9 @@
 const fetch = require("node-fetch");
 const fs = require("fs");
-const json2html = require('node-json2html');
 const supportHtml = require("./supportHtml.js")
+const HTMLConstants = require('./textHtmlConst')
 
-fetch("https://api.figma.com/v1/files/CClIdkIpUaDDWdbxp9EkMJ", {
+fetch("https://api.figma.com/v1/files/wx5gaDdT6XEU8YeZFLGyeV", {
   headers: {
     "X-Figma-Token": '166351-7aac409c-54bc-4425-90c8-eb1a8585d613'
   }
@@ -14,20 +14,19 @@ fetch("https://api.figma.com/v1/files/CClIdkIpUaDDWdbxp9EkMJ", {
   })
 });
 
+
 let rootBox;
 let rootFrame;
+let cssText
 let support = new supportHtml.SupportHtml;
-
 const createHTMLContainer=(rootFrame, rootBox)=>{
+  console.log("OK")
   var res = ""
-  //console.log(rootFrame);
   if (!!rootFrame.children && !!rootFrame.children.length && rootFrame.children.length > 0) {
     rootFrame.children.forEach(node => {
       if (typeof node.visible === "undefined") {
         if (node.name[0] === "!") {
-          //console.log(support.getNodeImage(node, rootBox));
           res += support.getNodeImage(node, rootBox)
-          //console.log(1);
         } else
           {
             res += support.getNodeHTML(node, rootBox);
@@ -38,21 +37,22 @@ const createHTMLContainer=(rootFrame, rootBox)=>{
     })
   }
   else{
-    // res += support.getNodeHTML()
     return ''
   }
   return res
 }
 
 const createHTML = data => {
-  rootFrame = data.document.children[0].children[0];
-  rootBox = rootFrame.absoluteBoundingBox;
+  let rootFrames = data.document.children[0].children;
+  rootFrames.forEach((rootFrame, index)=>{
+    rootBox = rootFrame.absoluteBoundingBox;
+    let doc = HTMLConstants.beginHTML;
 
-  let doc = support.getBeginHtml();
+    doc += createHTMLContainer(rootFrame, rootBox);
 
-  doc += createHTMLContainer(rootFrame, rootBox);
-
-  doc += support.getEndHtml();
-  support.generateCSSFile();
-  fs.writeFileSync("./webiusHTML/out.html", doc);
+    doc += HTMLConstants.endHTML;
+    fs.writeFileSync(`./webiusHTML/${rootFrame.name}.html`, doc);
+    support.generateDataMock(rootFrame.name)
+  })
+  support.generateCSSFile()
 }
