@@ -3,12 +3,12 @@ const fs = require("fs");
 const supportHtml = require("./supportHtml.js")
 const HTMLConstants = require('./textHtmlConst')
 
-fetch("https://api.figma.com/v1/files/wx5gaDdT6XEU8YeZFLGyeV", {
+fetch("https://api.figma.com/v1/files/C7jcJaJ0WAou7UCPVwwGIr", {
   headers: {
     "X-Figma-Token": '166351-7aac409c-54bc-4425-90c8-eb1a8585d613'
   }
-}).then((data)=>{
-  data.json().then((data)=>{
+}).then((data) => {
+  data.json().then((data) => {
     createHTML(data);
     fs.writeFileSync("./webiusHTML/out.json", JSON.stringify(data));
   })
@@ -16,27 +16,31 @@ fetch("https://api.figma.com/v1/files/wx5gaDdT6XEU8YeZFLGyeV", {
 
 
 let rootBox;
-let rootFrame;
-let cssText
 let support = new supportHtml.SupportHtml;
-const createHTMLContainer=(rootFrame, rootBox)=>{
-  console.log("OK")
+const createHTMLContainer = (rootFrame, rootBox) => {
+  // console.log("OK")
   var res = ""
   if (!!rootFrame.children && !!rootFrame.children.length && rootFrame.children.length > 0) {
     rootFrame.children.forEach(node => {
       if (typeof node.visible === "undefined") {
         if (node.name[0] === "!") {
           res += support.getNodeImage(node, rootBox)
-        } else
-          {
-            res += support.getNodeHTML(node, rootBox);
-            res += createHTMLContainer(node, node.absoluteBoundingBox);
+        } else {
+          res += support.getNodeHTML(node, rootBox);
+          res += createHTMLContainer(node, node.absoluteBoundingBox);
+          if (node.name[0] === "?") {
+            support.prevNode = ''
+          }
+          if (support.prevNode !== ""){
+            res +="</span>"
+          }
+          else{
             res += "</div>"
+          }
         }
       }
     })
-  }
-  else{
+  } else {
     return ''
   }
   return res
@@ -44,7 +48,7 @@ const createHTMLContainer=(rootFrame, rootBox)=>{
 
 const createHTML = data => {
   let rootFrames = data.document.children[0].children;
-  rootFrames.forEach((rootFrame, index)=>{
+  rootFrames.forEach((rootFrame) => {
     rootBox = rootFrame.absoluteBoundingBox;
     let doc = HTMLConstants.beginHTML;
 

@@ -81,26 +81,18 @@ function RenderElements(dataStr)
 	var elem;
 	var i;
 	try {
-		SCR.Data = JSON.parse(dataStr);
+		SCR.Data = dataStr;
 	}catch (e) {
 		throw "INVALID JSON SCREEN DATA";
 	}
-	if(typeof clientTimeout !== 'undefined')
-		clearTimeout(clientTimeout);
-
-	if(typeof SCR.Data.ext != 'undefined'){
-		if(typeof SCR.Data.ext.theme != 'undefined')
-			document.querySelector("body").classList.add(SCR.Data.ext.theme);
-	}
-	else{
-		document.querySelector("body").classList.remove('vip')
-	}
-	 // document.querySelector("body").classList.add('vip');
-	if(parseInt(SCR.Data.timeout.clientActivityTimeout) > 0) {
-		clientTimeout = setTimeout('clientTimeoutFunc();', parseInt(SCR.Data.timeout.clientActivityTimeout));
-		isTimeoutOff = false;
-	}else
-		isTimeoutOff = true;
+	// if(typeof clientTimeout !== 'undefined')
+	// 	clearTimeout(clientTimeout);
+	//  // document.querySelector("body").classList.add('vip');
+	// // if(parseInt(SCR.Data.timeout.clientActivityTimeout) > 0) {
+	// // 	clientTimeout = setTimeout('clientTimeoutFunc();', parseInt(SCR.Data.timeout.clientActivityTimeout));
+	// // 	isTimeoutOff = false;
+	// // }else
+	// // 	isTimeoutOff = true;
 
 
 	for(key in SCR.Data.button)
@@ -679,18 +671,6 @@ function RenderElements(dataStr)
 
 			}
 
-		} else
-		{
-			if(!SCR.Data.wait.enable)
-			{
-
-			}
-
-		}
-	}else
-	{
-		if(!SCR.Data.wait.enable) {
-
 		}
 	}
 
@@ -731,6 +711,7 @@ function ProcessKey(keyCode) {
 function RefreshScr(data) {
 
 	clearTimeout(clientTimeout);
+	alert(JSON.stringify(data))
 	RenderElements(data);
 	clearTimeout(refreshTimeout);
 
